@@ -1,16 +1,64 @@
+@fontface {
+  font-family: 'Bungee Inline', cursive;
+  src: url('https://fonts.googleapis.com/css?family=Bungee+Inline')
+}
+
 .App {
   text-align: center;
+  background:black;
+  font-family: 'Bungee Inline', cursive;
+}
+
+html {
+  background-color:black;
 }
 
 .App-header {
-  background-color: #222;
-  height: 150px;
-  padding: 20px;
-  color: white;
+  height: 250px;
+  padding-top: 30px;
+  /*padding-bottom: 100px;*/
+  padding-left: 10px;
+  color:#f8e9b9;
+  background-image: url("MoonPhaseVintage.jpg");
+  background-size: 75%;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size:relative;
+  text-align: left;
+  text-shadow: 1.5px 1.5px #aaa274; 
+}
+
+.input {
+  background: black;
+  border-radius: 4px;
+  border-color:#f8e9b9;
+  color:#f8e9b9;
+  align-content:center;
+}
+
+
+.inven-head {
+  background: black;
+  padding-top:10px;
+}
+
+#in-form {
+  display:block;
+  padding-top:20px;
+  padding-bottom: 20px;
+  padding-left:20px;
+  width:100%;
+}
+
+.text-center {
+  background:black;
+  color:#f8e9b9;
+  align-content: center;
 }
 
 .App-intro {
   font-size: large;
+  background:black;
 }
 
 @keyframes App-logo-spin {

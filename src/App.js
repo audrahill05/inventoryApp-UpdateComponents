@@ -8,6 +8,7 @@ import { Table } from 'react-bootstrap'
 var uuid = require('uuid');
 var firebase = require('firebase');
 
+
 var config = {
   apiKey: "AIzaSyDKzAuuafl_lb49GxQ5_PS0hm38gFo5mtw",
   authDomain: "inventoryapp-93564.firebaseapp.com",
@@ -35,11 +36,11 @@ class App extends Component {
     }
 
     //Handle Actions 
-
-    this._updateFireBaseRecord = this._updateFireBaseRecord.bind(this); //Updates the Firebase Record
+    this._editFirebaseData = this._editFirebaseData.bind(this);
+    this._handleFirebaseFormChange = this._handleFirebaseFormChange.bind(this); //Updates the Firebase 
     this._setFireBaseDataEditTable = this._setFireBaseDataEditTable.bind(this); //Sets the uuid we are going to modify
-    this._handleFirebaseFormChange = this._handleFirebaseFormChange.bind(this); //Sets the new value of each input
-
+    this._cancelFirebaseEditTable = this._cancelFirebaseEditTable.bind(this);
+    this.onSubmit = this.onSubmit.bind(this);
   }
 
   //Loading the data from firebase
@@ -74,8 +75,25 @@ class App extends Component {
   //It's a ReactJS requirement 
   //Here's a good reference: http://stackoverflow.com/questions/22220873/how-to-reload-input-value-in-react-javascript-with-virtual-dom
 
+  // handleChange(event) {
+  //   console.log("Field Updated");
+  //   this.props.onChange(event.target.value);
+  // }
+  handleChange(event) {
+    var change = {};
+    change[event.target.name] = event.target.value;
+    this.setState({editFields: change});
+    //this.setState({ typed: event.target.value });
+  }
+
+  _cancelFirebaseEditTable(event) {
+    event.preventDefault();
+    this.setState({ editMode: false});
+
+  }
+
   _handleFirebaseFormChange(event) {
-    console.log("Field Updated");
+    event.preventDefault();
     this.props.onChange(event.target.value);
   }
 
@@ -84,7 +102,7 @@ class App extends Component {
 
     const recordId = event.target.value;
 
-    console.log("The firebase uuid is", event.target.vaule);
+    console.log("The firebase uuid is", event.target.value);
 
     this.setState({
       editMode: true,
@@ -92,20 +110,19 @@ class App extends Component {
       editFields: []
     });
 
-    self = this; //We loose what this is once we go into the firebase database 
+    var self = this; //We loose what this is once we go into the firebase database 
 
     //Query the firebase data 
 
     firebase.database().ref().child("inventoryApp").orderByChild("uuid").on('value',
       (snapshot) => {
         snapshot.forEach(function (child) {
-          //console.log(child.val()) //NOW THE CHILDREN PRINT IN orderByChild
+          console.log(child.val()) //NOW THE CHILDREN PRINT IN orderByChild
           var value = child.val();
           var name = value.inventory.name;
           var quantity = value.inventory.quantity;
           var description = value.inventory.description;
           var uuid = value.inventory.uuid;
-
           var editFields = {};
 
           if (uuid === recordId) {
@@ -120,7 +137,7 @@ class App extends Component {
       })
   }
 
-  _updateFireBaseRecord(event) {
+  _editFirebaseData(event) {
     event.preventDefault();
 
     //Getting the values of each child type input
@@ -132,21 +149,24 @@ class App extends Component {
       }
     });
 
-    console.log("Data has been submitted!!!");
 
     //Resetting the property value 
+
+    // this.setState({
+    //   editMode: false
+    // });
+
+    var uuid2 = details["uuid"];
+    var self = this;
+
+    firebase.database().ref().child('/inventoryApp/' + uuid2)
+      .update({ inventory: details });
+
+    this._loadFirebaseData();
 
     this.setState({
       editMode: false
     });
-
-    var uuid = details["uuid"];
-    var self = this;
-
-    firebase.database().ref().child('/inventoryApp/' + uuid)
-      .update({ inventory: details });
-
-    this._loadFirebaseData();
   }
 
 
@@ -158,9 +178,9 @@ class App extends Component {
 
     //console.log(event.target.value)
     //Removes one element
-    var uuid = event.target.value;
+    var uuid3 = event.target.value;
 
-    firebase.database().ref().child('inventoryApp/' + uuid).remove();
+    firebase.database().ref().child('inventoryApp/' + uuid3).remove();
 
     //Reload the data
     this._loadFirebaseData();
@@ -173,13 +193,13 @@ class App extends Component {
     var editView;
     var output;
 
-    inputForm = <span>
-      <h2>Please enter your inventory Item</h2>
+    inputForm = <span className="span">
+      <h3 className= "inven-head">Please Enter Your Inventory Item</h3>
       <form id="in-form" onSubmit={this.onSubmit.bind(this)}>
-        <input type="text" placeholder="Enter Name..." name="name" />
-        <input type="text" placeholder="Enter description..." name="description" />
-        <input type="text" placeholder="Enter quantity..." name="quantity" />
-        <button type="submit">Submit</button>
+        <input className="input" type="text" placeholder="Enter Name..." name="name" />
+        <input className="input" type="text" placeholder="Enter Description..." name="description" />
+        <input className="input" type="text" placeholder="Enter Quantity..." name="quantity" />
+        <button className="input" type="submit">Submit</button>
       </form>
     </span>
 
@@ -188,17 +208,15 @@ class App extends Component {
 
       //console.log(JSON.stringify(item));
       return Object.keys(item).map(function (s) {
-        //console.log("ITEM:" + item[s].name)
-        //console.log("Name:" + item[s].inventory.name)
-        //console.log("Item Information: ", item[s]);
+  
         return (
           //<tr key={index}>
           <tr key={s}>
             <th> {item[s].inventory.name} </th>
             <th> {item[s].inventory.description} </th>
             <th> {item[s].inventory.quantity} </th>
-            <th><button value={item[s].inventory.uuid} onClick={self._handleClick.bind(self)}>Delete</button></th>
-            <th><button vaule={item[s].inventory.uuid} onClick={self._setFireBaseDataEditTable.bind(self)}>Edit</button>
+            <th><button className="input" value={item[s].inventory.uuid} onClick={self._handleClick.bind(self)}>Delete</button></th>
+            <th><button className="input" value={item[s].inventory.uuid} onClick={self._setFireBaseDataEditTable}>Edit</button>
             </th>
           </tr>
         )
@@ -209,13 +227,14 @@ class App extends Component {
 
     table = (
       <span>
-        <Table striped bordered condensed hover>
+        <Table condensed hover>
           <thead>
             <tr>
               <th> Name </th>
               <th> Description </th>
               <th> Quantity </th>
-              <th> Actions </th>
+              <th></th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -227,13 +246,14 @@ class App extends Component {
 
     editView = (
       <div>
-        <h2>Edit Mode</h2>
-        <form onSubmit={this._updateFireBaseRecord}>
-          <input type="text" value={this.state.editFields.name} onChange={this._handleFirebaseFormChange} name="name" />
-            <input type="text" value={this.state.editFields.description} onChange={this._handleFirebaseFormChange} name="description" />
-          <input type="text" value={this.state.editFields.quantity} onChange={this._handleFirebaseFormChange} name="quantity" />
-          <input type="text" className="hideinput" value={this.state.editFields.uuid} name="uuid" />
-          <button type="submit" type="submit" >Submit</button>
+        <h2>Edit Inventory Item</h2>
+        <form onSubmit={this._editFirebaseData}>
+          <input className="input" type="text" value={this.state.editFields.name} onChange={this.handleChange} name="name" />
+          <input className="input" type="text" value={this.state.editFields.description} onChange={this.handleChange} name="description" />
+          <input className="input" type="text" value={this.state.editFields.quantity} onChange={this.handleChange} name="quantity" />
+          <input type="text" className="hide input" value={this.state.editFields.uuid} name="uuid" />
+          <button className="input" type="submit">Submit</button>
+          <button className="input" onClick={self._cancelFirebaseEditTable}>Cancel</button>
         </form>
       </div>
     );
@@ -243,7 +263,7 @@ class App extends Component {
       output = (
         <div className="App">
           <div className="App-header">
-            <h2>Inventory App</h2>
+            <h2>Moon Phase Vintage Co.</h2>
           </div>
           <div className="text-center">
             {editView}
@@ -254,7 +274,7 @@ class App extends Component {
       output = (
         <div className="App">
           <div className="App-header">
-            <h2>Inventory App</h2>
+            <h2>Moon Phase Vintage Co.</h2>
           </div>
           <div className="text-center">
             {inputForm}
